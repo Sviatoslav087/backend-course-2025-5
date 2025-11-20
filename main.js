@@ -21,7 +21,46 @@ const { host, port, cache } = program.opts();
   const server = http.createServer((req, res) => {
     res.end("Server is working");
   });
+  //GET
+if (req.method === "GET") {
+  const code = req.url.slice(1);
+  try {
+    const img = await fs.readFile(`${cache}/${code}.jpg`);
+    res.writeHead(200, { "Content-Type": "image/jpeg" });
+    res.end(img);
+  } catch {
+    res.writeHead(404);
+    res.end("Not found");
+  }
+  return;
+}
+//PUT
+if (req.method === "PUT") {
+  const code = req.url.slice(1);
+  const chunks = [];
 
+  req.on("data", chunk => chunks.push(chunk));
+  req.on("end", async () => {
+    await fs.writeFile(`${cache}/${code}.jpg`, Buffer.concat(chunks));
+    res.writeHead(201);
+    res.end("Created");
+  });
+
+  return;
+}
+//DELETE
+if (req.method === "DELETE") {
+  const code = req.url.slice(1);
+  try {
+    await fs.unlink(`${cache}/${code}.jpg`);
+    res.writeHead(200);
+    res.end("Deleted");
+  } catch {
+    res.writeHead(404);
+    res.end("Not found");
+  }
+  return;
+}
   server.listen(port, host, () => {
     console.log(`Server running at http://${host}:${port}`);
   });

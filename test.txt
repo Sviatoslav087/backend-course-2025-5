@@ -1,0 +1,3 @@
+curl -X PUT --data-binary @photo.jpg http://localhost:3000/300
+curl http://localhost:3000/200 --output out.jpg
+curl -X DELETE http://localhost:3000/400
