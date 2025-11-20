@@ -22,18 +22,28 @@ const { host, port, cache } = program.opts();
     res.end("Server is working");
   });
   //GET
-if (req.method === "GET") {
-  const code = req.url.slice(1);
-  try {
-    const img = await fs.readFile(`${cache}/${code}.jpg`);
-    res.writeHead(200, { "Content-Type": "image/jpeg" });
-    res.end(img);
-  } catch {
-    res.writeHead(404);
-    res.end("Not found");
-  }
+// Якщо нема у кеші — качаємо з http.cat
+try {
+  const img = await fs.readFile(`${cache}/${code}.jpg`);
+  res.writeHead(200, { "Content-Type": "image/jpeg" });
+  res.end(img);
   return;
+} catch {}
+
+// Завантажуємо з http.cat
+try {
+  const response = await request.get(`https://http.cat/${code}`);
+
+  // зберегти у кеш
+  await fs.writeFile(`${cache}/${code}.jpg`, response.body);
+
+  res.writeHead(200, { "Content-Type": "image/jpeg" });
+  res.end(response.body);
+} catch {
+  res.writeHead(404);
+  res.end("Not found on http.cat");
 }
+
 //PUT
 if (req.method === "PUT") {
   const code = req.url.slice(1);
